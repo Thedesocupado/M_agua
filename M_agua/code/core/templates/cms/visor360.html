@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Visor 360</title>
+    <title>{{ titulo }}</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css"/>
     <style>
         * {
@@ -17,6 +17,7 @@
             width: 100%;
             height: 100%;
             overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
         }
         
         /* Fondo 360 interactivo */
@@ -41,29 +42,80 @@
         .contenido * {
             pointer-events: auto;
         }
+        
+        /* Mensaje cuando no hay imagen */
+        .no-imagen {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+            padding: 2rem;
+        }
+        
+        .no-imagen h1 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+        
+        .no-imagen p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            max-width: 600px;
+        }
+        
+        .no-imagen a {
+            display: inline-block;
+            margin-top: 2rem;
+            padding: 1rem 2rem;
+            background: white;
+            color: #667eea;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+        
+        .no-imagen a:hover {
+            transform: translateY(-2px);
+        }
     </style>
 </head>
 <body>
-    <!-- Fondo 360 interactivo -->
+    {% if imagen %}
+    <!-- Fondo 360 interactivo desde base de datos -->
     <div id="panorama"></div>
     
     <!-- Contenido de la página (vacío por ahora) -->
     <div class="contenido">
-        <!-- Aquí irá el contenido después -->
+        <!-- Aquí irá el contenido que agregarás después con el CMS -->
     </div>
     
     <script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
     <script>
         pannellum.viewer('panorama', {
             "type": "equirectangular",
-            "panorama": "{% static 'images/imagen360.jpg' %}",
+            "panorama": "{{ imagen.imagen.url }}",
             "autoLoad": true,
             "autoRotate": -2,
             "showControls": false,
             "mouseZoom": true,
             "draggable": true,
-            "compass": false
+            "compass": false,
+            "friction": 0.15
         });
     </script>
+    {% else %}
+    <!-- Mensaje cuando no hay imagen 360 configurada -->
+    <div class="no-imagen">
+        <h1>🌐 Visor 360</h1>
+        <p>No hay ninguna imagen 360 activa en este momento.<br>
+        Por favor, sube una imagen desde el panel de administración.</p>
+        <a href="/admin/cms/imagen360/">Ir al Panel de Administración</a>
+    </div>
+    {% endif %}
 </body>
 </html>
