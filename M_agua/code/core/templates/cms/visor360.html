@@ -1,0 +1,69 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visor 360</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css"/>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+        
+        /* Fondo 360 interactivo */
+        #panorama {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            z-index: 1;
+        }
+        
+        /* Contenido encima del fondo (vacío por ahora) */
+        .contenido {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            height: 100vh;
+            pointer-events: none;
+        }
+        
+        .contenido * {
+            pointer-events: auto;
+        }
+    </style>
+</head>
+<body>
+    <!-- Fondo 360 interactivo -->
+    <div id="panorama"></div>
+    
+    <!-- Contenido de la página (vacío por ahora) -->
+    <div class="contenido">
+        <!-- Aquí irá el contenido después -->
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
+    <script>
+        pannellum.viewer('panorama', {
+            "type": "equirectangular",
+            "panorama": "{% static 'images/imagen360.jpg' %}",
+            "autoLoad": true,
+            "autoRotate": -2,
+            "showControls": false,
+            "mouseZoom": true,
+            "draggable": true,
+            "compass": false
+        });
+    </script>
+</body>
+</html>
