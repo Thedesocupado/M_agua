@@ -1,20 +1,51 @@
 from django.contrib import admin
-from .models import Imagen360
+from .models import CategoriaEscena, Escena360
 
-@admin.register(Imagen360)
-class Imagen360Admin(admin.ModelAdmin):
-    list_display = ['titulo', 'activa', 'fecha_creacion', 'fecha_modificacion']
+@admin.register(CategoriaEscena)
+class CategoriaEscenaAdmin(admin.ModelAdmin):
+    list_display = ['titulo', 'orden', 'activa', 'color_fondo', 'fecha_creacion']
     list_filter = ['activa', 'fecha_creacion']
     search_fields = ['titulo', 'descripcion']
     readonly_fields = ['fecha_creacion', 'fecha_modificacion']
+    list_editable = ['orden', 'activa']
     
     fieldsets = (
         ('Información Principal', {
-            'fields': ('titulo', 'imagen', 'descripcion')
+            'fields': ('titulo', 'icono', 'descripcion')
         }),
-        ('Estado', {
-            'fields': ('activa',),
-            'description': 'Solo una imagen puede estar activa a la vez. Al activar esta, las demás se desactivarán automáticamente.'
+        ('Configuración', {
+            'fields': ('orden', 'activa', 'color_fondo'),
+            'description': 'El orden determina la posición del botón principal en el menú.'
+        }),
+        ('Información del Sistema', {
+            'fields': ('fecha_creacion', 'fecha_modificacion'),
+            'classes': ('collapse',)
+        }),
+    )
+
+
+class Escena360Inline(admin.TabularInline):
+    model = Escena360
+    extra = 1
+    fields = ['titulo', 'imagen', 'icono', 'orden', 'activa']
+    ordering = ['orden']
+
+
+@admin.register(Escena360)
+class Escena360Admin(admin.ModelAdmin):
+    list_display = ['titulo', 'categoria', 'orden', 'activa', 'fecha_creacion']
+    list_filter = ['activa', 'categoria', 'fecha_creacion']
+    search_fields = ['titulo', 'descripcion', 'categoria__titulo']
+    readonly_fields = ['fecha_creacion', 'fecha_modificacion']
+    list_editable = ['orden', 'activa']
+    
+    fieldsets = (
+        ('Información Principal', {
+            'fields': ('categoria', 'titulo', 'imagen', 'icono', 'descripcion')
+        }),
+        ('Configuración', {
+            'fields': ('orden', 'activa'),
+            'description': 'El orden determina la posición dentro de su categoría.'
         }),
         ('Información del Sistema', {
             'fields': ('fecha_creacion', 'fecha_modificacion'),
@@ -23,10 +54,8 @@ class Imagen360Admin(admin.ModelAdmin):
     )
     
     def get_queryset(self, request):
-        qs = super().get_queryset(request)
-        return qs
-    
-    class Media:
-        css = {
-            'all': ('admin/css/custom_admin.css',)
-        }
+        return super().get_queryset(request).select_related('categoria')
+
+
+# Agregar inline a CategoriaEscena
+CategoriaEscenaAdmin.inlines = [Escena360Inline]
