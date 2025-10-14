@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import CategoriaEscena, Escena360
+from .models import CategoriaEscena, Escena360, LogoCreador, ConfiguracionInterfaz
 
 @admin.register(CategoriaEscena)
 class CategoriaEscenaAdmin(admin.ModelAdmin):
@@ -11,7 +11,7 @@ class CategoriaEscenaAdmin(admin.ModelAdmin):
     
     fieldsets = (
         ('Información Principal', {
-            'fields': ('titulo', 'icono', 'descripcion')
+            'fields': ('titulo', 'icono', 'imagen_fondo', 'descripcion')
         }),
         ('Configuración', {
             'fields': ('orden', 'activa', 'color_fondo'),
@@ -57,5 +57,52 @@ class Escena360Admin(admin.ModelAdmin):
         return super().get_queryset(request).select_related('categoria')
 
 
-# Agregar inline a CategoriaEscena
+@admin.register(LogoCreador)
+class LogoCreadorAdmin(admin.ModelAdmin):
+    list_display = ['nombre', 'orden', 'activo', 'fecha_creacion']
+    list_filter = ['activo', 'fecha_creacion']
+    search_fields = ['nombre']
+    list_editable = ['orden', 'activo']
+    
+    fieldsets = (
+        ('Información', {
+            'fields': ('nombre', 'logo', 'url')
+        }),
+        ('Configuración', {
+            'fields': ('orden', 'activo')
+        }),
+    )
+
+
+@admin.register(ConfiguracionInterfaz)
+class ConfiguracionInterfazAdmin(admin.ModelAdmin):
+    fieldsets = (
+        ('Configuración de Descripción Lateral', {
+            'fields': (
+                'usar_imagen_descripcion',
+                'imagen_fondo_descripcion',
+                'color_descripcion',
+                'transparencia_descripcion'
+            ),
+            'description': 'Personaliza el fondo del panel de descripción en la parte izquierda'
+        }),
+        ('Configuración de Logos Superiores', {
+            'fields': (
+                'mostrar_fondo_logos',
+                'color_logos',
+                'transparencia_logos'
+            ),
+            'description': 'Personaliza el fondo del contenedor de logos en la parte superior. Si "Mostrar fondo" está desactivado, los logos no tendrán ningún fondo.'
+        }),
+    )
+    
+    def has_add_permission(self, request):
+        # Solo permitir crear si no existe ninguna configuración
+        return not ConfiguracionInterfaz.objects.exists()
+    
+    def has_delete_permission(self, request, obj=None):
+        # No permitir eliminar la configuración
+        return False
+
+
 CategoriaEscenaAdmin.inlines = [Escena360Inline]
