@@ -2,111 +2,57 @@ from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 
 class CategoriaEscena(models.Model):
-    """Botón principal del menú que agrupa escenas"""
-    titulo = models.CharField(
-        max_length=200, 
-        verbose_name="Título",
-        help_text="Nombre de la categoría (ej: 'Planta Baja', 'Primer Piso', 'Exteriores')"
-    )
-    icono = models.ImageField(
-        upload_to='categorias/',
-        verbose_name="Icono del botón principal",
-        help_text="Imagen circular para el botón principal (recomendado: 200x200px)"
-    )
-    imagen_fondo = models.ImageField(
-        upload_to='fondos_categorias/',
-        verbose_name="Imagen 360 de fondo",
-        help_text="Imagen 360 que se mostrará como fondo al seleccionar esta categoría",
-        blank=True,
-        null=True
-    )
-    descripcion = models.TextField(
-        blank=True, 
-        verbose_name="Descripción"
-    )
-    orden = models.IntegerField(
-        default=0,
-        verbose_name="Orden",
-        help_text="Orden de aparición en el menú (menor número = más a la izquierda)"
-    )
-    activa = models.BooleanField(
-        default=True,
-        verbose_name="Activa",
-        help_text="Si está desactivada, no aparecerá en el menú"
-    )
+    """Categoría para agrupar escenas 360"""
+    titulo = models.CharField(max_length=200, verbose_name="Título de la categoría")
+    icono = models.ImageField(upload_to='categorias/', verbose_name="Icono de la categoría")
     color_fondo = models.CharField(
         max_length=7,
-        default="#667eea",
+        default="#ffffff",
         verbose_name="Color de fondo",
-        help_text="Color hexadecimal para el botón (ej: #667eea)"
+        help_text="Color hexadecimal (ej: #ffffff para blanco)"
     )
+    imagen_fondo = models.ImageField(
+        upload_to='categorias/',
+        blank=True,
+        null=True,
+        verbose_name="Imagen de fondo",
+        help_text="Imagen que se mostrará al seleccionar esta categoría (opcional)"
+    )
+    orden = models.IntegerField(default=0, verbose_name="Orden de visualización")
+    activa = models.BooleanField(default=True, verbose_name="Categoría activa")
     fecha_creacion = models.DateTimeField(auto_now_add=True)
     fecha_modificacion = models.DateTimeField(auto_now=True)
     
     class Meta:
-        verbose_name = "Categoría de Escenas"
+        verbose_name = "Categoría de Escena"
         verbose_name_plural = "Categorías de Escenas"
         ordering = ['orden', 'titulo']
     
     def __str__(self):
         return self.titulo
-    
-    def get_imagen_fondo(self):
-        """Retorna la imagen de fondo o la primera escena como fallback"""
-        if self.imagen_fondo:
-            return self.imagen_fondo.url
-        primera_escena = self.escenas.filter(activa=True).order_by('orden').first()
-        if primera_escena:
-            return primera_escena.imagen.url
-        return None
 
 
 class Escena360(models.Model):
-    """Botón secundario - cada vista/escena 360"""
+    """Escena 360 individual"""
     categoria = models.ForeignKey(
         CategoriaEscena,
         on_delete=models.CASCADE,
         related_name='escenas',
-        verbose_name="Categoría",
-        help_text="Botón principal al que pertenece esta escena"
+        verbose_name="Categoría"
     )
-    titulo = models.CharField(
-        max_length=200, 
-        verbose_name="Título",
-        help_text="Nombre de la escena (ej: 'Sala Principal', 'Jardín')"
-    )
-    imagen = models.ImageField(
-        upload_to='imagenes_360/',
-        verbose_name="Imagen 360",
-        help_text="Imagen equirectangular para esta escena. Ratio recomendado 2:1"
-    )
-    icono = models.ImageField(
-        upload_to='iconos_360/',
-        verbose_name="Icono del botón",
-        help_text="Imagen circular para el botón secundario (recomendado: 200x200px)"
-    )
-    descripcion = models.TextField(
-        blank=True, 
-        verbose_name="Descripción",
-        help_text="Descripción que se mostrará en la parte izquierda de la pantalla"
-    )
-    orden = models.IntegerField(
-        default=0,
-        verbose_name="Orden",
-        help_text="Orden dentro de su categoría"
-    )
-    activa = models.BooleanField(
-        default=True,
-        verbose_name="Activa",
-        help_text="Si está desactivada, no aparecerá en el menú"
-    )
+    titulo = models.CharField(max_length=200, verbose_name="Título de la escena")
+    descripcion = models.TextField(blank=True, verbose_name="Descripción")
+    imagen = models.ImageField(upload_to='escenas/', verbose_name="Imagen 360")
+    icono = models.ImageField(upload_to='iconos/', verbose_name="Icono de la escena")
+    orden = models.IntegerField(default=0, verbose_name="Orden de visualización")
+    activa = models.BooleanField(default=True, verbose_name="Escena activa")
     fecha_creacion = models.DateTimeField(auto_now_add=True)
     fecha_modificacion = models.DateTimeField(auto_now=True)
     
     class Meta:
         verbose_name = "Escena 360"
         verbose_name_plural = "Escenas 360"
-        ordering = ['categoria__orden', 'orden', 'titulo']
+        ordering = ['categoria', 'orden', 'titulo']
     
     def __str__(self):
         return f"{self.categoria.titulo} - {self.titulo}"
@@ -114,42 +60,63 @@ class Escena360(models.Model):
 
 class LogoCreador(models.Model):
     """Logos de los creadores que aparecen en la parte superior"""
-    nombre = models.CharField(
-        max_length=200,
-        verbose_name="Nombre",
-        help_text="Nombre del creador o institución"
-    )
-    logo = models.ImageField(
-        upload_to='logos/',
-        verbose_name="Logo",
-        help_text="Logo del creador (recomendado: fondo transparente, max 150px de alto)"
-    )
-    url = models.URLField(
-        blank=True,
-        verbose_name="URL",
-        help_text="Enlace opcional al sitio web del creador"
-    )
-    orden = models.IntegerField(
-        default=0,
-        verbose_name="Orden",
-        help_text="Orden de aparición (menor número = más a la izquierda)"
-    )
-    activo = models.BooleanField(
-        default=True,
-        verbose_name="Activo"
-    )
+    nombre = models.CharField(max_length=200, verbose_name="Nombre del creador")
+    logo = models.ImageField(upload_to='logos/', verbose_name="Logo")
+    url = models.URLField(blank=True, verbose_name="URL (opcional)", help_text="Enlace al hacer clic en el logo")
+    orden = models.IntegerField(default=0, verbose_name="Orden de visualización")
+    activo = models.BooleanField(default=True, verbose_name="Logo activo")
     fecha_creacion = models.DateTimeField(auto_now_add=True)
     
     class Meta:
-        verbose_name = "Logo Creador"
-        verbose_name_plural = "Logos Creadores"
+        verbose_name = "Logo de Creador"
+        verbose_name_plural = "Logos de Creadores"
         ordering = ['orden', 'nombre']
     
     def __str__(self):
         return self.nombre
 
+
 class ConfiguracionInterfaz(models.Model):
     """Configuración de colores y fondos de la interfaz"""
+    
+    FUENTES_CHOICES = [
+        ('Arial, sans-serif', 'Arial'),
+        ('Helvetica, sans-serif', 'Helvetica'),
+        ('Georgia, serif', 'Georgia'),
+        ('Times New Roman, serif', 'Times New Roman'),
+        ('Courier New, monospace', 'Courier New'),
+        ('Verdana, sans-serif', 'Verdana'),
+        ('Trebuchet MS, sans-serif', 'Trebuchet MS'),
+        ('Impact, sans-serif', 'Impact'),
+        ('Comic Sans MS, cursive', 'Comic Sans MS'),
+        ('Palatino, serif', 'Palatino'),
+        ('-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', 'Sistema (Recomendado)'),
+    ]
+    
+    # Configuración de títulos superiores
+    titulo_principal = models.CharField(
+        max_length=200,
+        default="Visor 360",
+        verbose_name="Título Principal",
+        help_text="Título fijo que aparece en la parte superior de todas las páginas"
+    )
+    mostrar_fondo_titulos = models.BooleanField(
+        default=True,
+        verbose_name="Mostrar fondo en títulos",
+        help_text="Si está desactivado, los títulos no tendrán ningún fondo"
+    )
+    tamano_titulo_principal = models.IntegerField(
+        default=32,
+        validators=[MinValueValidator(16), MaxValueValidator(72)],
+        verbose_name="Tamaño del título principal (px)",
+        help_text="Tamaño de letra del título principal en píxeles"
+    )
+    tamano_titulo_secundario = models.IntegerField(
+        default=22,
+        validators=[MinValueValidator(12), MaxValueValidator(48)],
+        verbose_name="Tamaño del título secundario (px)",
+        help_text="Tamaño de letra del título de la escena actual en píxeles"
+    )
     
     # Configuración de descripción lateral
     usar_imagen_descripcion = models.BooleanField(
@@ -175,6 +142,34 @@ class ConfiguracionInterfaz(models.Model):
         validators=[MinValueValidator(0), MaxValueValidator(100)],
         verbose_name="Transparencia descripción (%)",
         help_text="0 = transparente, 100 = opaco"
+    )
+    
+    # Tipografía de descripción
+    fuente_titulo_descripcion = models.CharField(
+        max_length=100,
+        choices=FUENTES_CHOICES,
+        default='-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+        verbose_name="Fuente del título",
+        help_text="Tipografía para el título de la descripción"
+    )
+    tamano_titulo_descripcion = models.IntegerField(
+        default=24,
+        validators=[MinValueValidator(12), MaxValueValidator(72)],
+        verbose_name="Tamaño del título (px)",
+        help_text="Tamaño de letra del título en píxeles"
+    )
+    fuente_texto_descripcion = models.CharField(
+        max_length=100,
+        choices=FUENTES_CHOICES,
+        default='-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+        verbose_name="Fuente del texto",
+        help_text="Tipografía para el texto de la descripción"
+    )
+    tamano_texto_descripcion = models.IntegerField(
+        default=16,
+        validators=[MinValueValidator(10), MaxValueValidator(48)],
+        verbose_name="Tamaño del texto (px)",
+        help_text="Tamaño de letra del texto en píxeles"
     )
     
     # Configuración de logos superiores
@@ -206,7 +201,6 @@ class ConfiguracionInterfaz(models.Model):
         return "Configuración de Interfaz"
     
     def save(self, *args, **kwargs):
-        # Solo permitir una configuración
         if not self.pk and ConfiguracionInterfaz.objects.exists():
             raise ValueError("Solo puede existir una configuración de interfaz")
         super().save(*args, **kwargs)

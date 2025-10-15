@@ -41,19 +41,25 @@
             pointer-events: auto;
         }
         
-        /* Logos en la parte superior central */
-        .logos-container {
+        .header-container {
             position: fixed;
-            top: 20px;
+            top: 1px;
             left: 50%;
             transform: translateX(-50%);
             z-index: 100;
             display: flex;
-            gap: 30px;
+            flex-direction: column;
+            align-items: top;
+            gap: 1px;
+        }
+        
+        .logos-container {
+            display: flex;
+            gap: 5px;
             align-items: center;
             justify-content: center;
-            padding: 15px 30px;
-            border-radius: 15px;
+            padding: 5px 5px;
+            border-radius: 1px;
             {% if config.mostrar_fondo_logos %}
             background: {{ config.get_rgba_logos }};
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
@@ -84,7 +90,37 @@
             height: 100%;
         }
         
-        /* Descripción en la parte izquierda */
+        .titulos-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1px;
+            padding: 10px -15px;
+            border-radius: 1px;
+            {% if config.mostrar_fondo_titulos %}
+            background: rgba(0, 0, 0, 0.35);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            {% endif %}
+        }
+        
+        .titulo-principal {
+            font-size: {{ config.tamano_titulo_principal }}px;
+            font-weight: 800;
+            color: white;
+            text-align: center;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        }
+        
+        .titulo-actual {
+            font-size: {{ config.tamano_titulo_secundario }}px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.9);
+            text-align: center;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+            transition: opacity 0.3s ease;
+        }
+        
         .descripcion-container {
             position: fixed;
             left: 30px;
@@ -112,7 +148,8 @@
         }
         
         .descripcion-titulo {
-            font-size: 1.5rem;
+            font-family: {{ config.fuente_titulo_descripcion }};
+            font-size: {{ config.tamano_titulo_descripcion }}px;
             font-weight: 700;
             color: #333;
             margin-bottom: 15px;
@@ -120,12 +157,12 @@
         }
         
         .descripcion-texto {
-            font-size: 1rem;
+            font-family: {{ config.fuente_texto_descripcion }};
+            font-size: {{ config.tamano_texto_descripcion }}px;
             color: #555;
             line-height: 1.6;
         }
         
-        /* Menú en la parte baja */
         .menu-container {
             position: fixed;
             bottom: 30px;
@@ -299,14 +336,31 @@
         }
         
         @media (max-width: 768px) {
+            .header-container {
+                top: 2px;
+                gap: 2px;
+            }
+            
             .logos-container {
                 gap: 15px;
                 padding: 10px 20px;
-                top: 10px;
             }
             
             .logo-item {
                 height: 35px;
+            }
+            
+            .titulos-container {
+                gap: 1px;
+                padding: 10px 10px;
+            }
+            
+            .titulo-principal {
+                font-size: {{ config.tamano_titulo_principal|add:"-8" }}px;
+            }
+            
+            .titulo-actual {
+                font-size: {{ config.tamano_titulo_secundario|add:"-6" }}px;
             }
             
             .descripcion-container {
@@ -317,11 +371,11 @@
             }
             
             .descripcion-titulo {
-                font-size: 1.2rem;
+                font-size: {{ config.tamano_titulo_descripcion|add:"-4" }}px;
             }
             
             .descripcion-texto {
-                font-size: 0.9rem;
+                font-size: {{ config.tamano_texto_descripcion|add:"-2" }}px;
             }
             
             .escena-btn {
@@ -349,21 +403,28 @@
     <div id="panorama"></div>
     
     <div class="contenido">
-        {% if logos %}
-        <div class="logos-container">
-            {% for logo in logos %}
-            <div class="logo-item">
-                {% if logo.url %}
-                <a href="{{ logo.url }}" target="_blank" rel="noopener noreferrer">
+        <div class="header-container">
+            {% if logos %}
+            <div class="logos-container">
+                {% for logo in logos %}
+                <div class="logo-item">
+                    {% if logo.url %}
+                    <a href="{{ logo.url }}" target="_blank" rel="noopener noreferrer">
+                        <img src="{{ logo.logo.url }}" alt="{{ logo.nombre }}">
+                    </a>
+                    {% else %}
                     <img src="{{ logo.logo.url }}" alt="{{ logo.nombre }}">
-                </a>
-                {% else %}
-                <img src="{{ logo.logo.url }}" alt="{{ logo.nombre }}">
-                {% endif %}
+                    {% endif %}
+                </div>
+                {% endfor %}
             </div>
-            {% endfor %}
+            {% endif %}
+            
+            <div class="titulos-container">
+                <div class="titulo-principal">{{ config.titulo_principal }}</div>
+                <div class="titulo-actual" id="tituloActual">{{ escena_inicial.titulo }}</div>
+            </div>
         </div>
-        {% endif %}
         
         <div class="descripcion-container" id="descripcionContainer">
             <h2 class="descripcion-titulo" id="descripcionTitulo">{{ escena_inicial.titulo }}</h2>
@@ -416,6 +477,7 @@
         const descripcionContainer = document.getElementById('descripcionContainer');
         const descripcionTitulo = document.getElementById('descripcionTitulo');
         const descripcionTexto = document.getElementById('descripcionTexto');
+        const tituloActual = document.getElementById('tituloActual');
         
         setTimeout(() => {
             descripcionContainer.classList.add('visible');
@@ -424,6 +486,7 @@
         function actualizarDescripcion(titulo, descripcion) {
             descripcionTitulo.textContent = titulo;
             descripcionTexto.textContent = descripcion || '';
+            tituloActual.textContent = titulo;
             
             if (!descripcion) {
                 descripcionContainer.classList.remove('visible');
