@@ -44,6 +44,11 @@ class Escena360(models.Model):
     descripcion = models.TextField(blank=True, verbose_name="Descripción")
     imagen = models.ImageField(upload_to='escenas/', verbose_name="Imagen 360")
     icono = models.ImageField(upload_to='iconos/', verbose_name="Icono de la escena")
+    video_youtube = models.URLField(
+        blank=True,
+        verbose_name="Video de YouTube (opcional)",
+        help_text="URL del video de YouTube (ej: https://www.youtube.com/watch?v=VIDEO_ID)"
+    )
     orden = models.IntegerField(default=0, verbose_name="Orden de visualización")
     activa = models.BooleanField(default=True, verbose_name="Escena activa")
     fecha_creacion = models.DateTimeField(auto_now_add=True)
@@ -56,6 +61,40 @@ class Escena360(models.Model):
     
     def __str__(self):
         return f"{self.categoria.titulo} - {self.titulo}"
+    
+    def get_youtube_embed_url(self):
+        """Convierte URL de YouTube a formato embed"""
+        if not self.video_youtube:
+            return None
+        
+        video_id = None
+        if 'youtube.com/watch?v=' in self.video_youtube:
+            video_id = self.video_youtube.split('watch?v=')[1].split('&')[0]
+        elif 'youtu.be/' in self.video_youtube:
+            video_id = self.video_youtube.split('youtu.be/')[1].split('?')[0]
+        elif 'youtube.com/embed/' in self.video_youtube:
+            video_id = self.video_youtube.split('embed/')[1].split('?')[0]
+        
+        if video_id:
+            return f"https://www.youtube.com/embed/{video_id}"
+        return None
+    
+    def get_youtube_watch_url(self):
+        """Obtiene la URL directa de YouTube para abrir en nueva pestaña"""
+        if not self.video_youtube:
+            return None
+        
+        video_id = None
+        if 'youtube.com/watch?v=' in self.video_youtube:
+            return self.video_youtube
+        elif 'youtu.be/' in self.video_youtube:
+            video_id = self.video_youtube.split('youtu.be/')[1].split('?')[0]
+        elif 'youtube.com/embed/' in self.video_youtube:
+            video_id = self.video_youtube.split('embed/')[1].split('?')[0]
+        
+        if video_id:
+            return f"https://www.youtube.com/watch?v={video_id}"
+        return self.video_youtube
 
 
 class LogoCreador(models.Model):
@@ -93,7 +132,6 @@ class ConfiguracionInterfaz(models.Model):
         ('-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', 'Sistema (Recomendado)'),
     ]
     
-    # Configuración de títulos superiores
     titulo_principal = models.CharField(
         max_length=200,
         default="Visor 360",
@@ -118,7 +156,6 @@ class ConfiguracionInterfaz(models.Model):
         help_text="Tamaño de letra del título de la escena actual en píxeles"
     )
     
-    # Configuración de descripción lateral
     usar_imagen_descripcion = models.BooleanField(
         default=False,
         verbose_name="Usar imagen de fondo en descripción",
@@ -144,7 +181,6 @@ class ConfiguracionInterfaz(models.Model):
         help_text="0 = transparente, 100 = opaco"
     )
     
-    # Tipografía de descripción
     fuente_titulo_descripcion = models.CharField(
         max_length=100,
         choices=FUENTES_CHOICES,
@@ -172,7 +208,6 @@ class ConfiguracionInterfaz(models.Model):
         help_text="Tamaño de letra del texto en píxeles"
     )
     
-    # Configuración de logos superiores
     mostrar_fondo_logos = models.BooleanField(
         default=True,
         verbose_name="Mostrar fondo en logos",

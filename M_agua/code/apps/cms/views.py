@@ -5,19 +5,14 @@ from .models import CategoriaEscena, Escena360, LogoCreador, ConfiguracionInterf
 def visor_360(request):
     """Vista principal del visor 360"""
     
-    # Obtener todas las categorías activas con sus escenas
     categorias = CategoriaEscena.objects.filter(activa=True).prefetch_related('escenas')
     
-    # Obtener la configuración de interfaz (solo debe haber una)
     config = ConfiguracionInterfaz.objects.first()
     if not config:
-        # Crear configuración por defecto si no existe
         config = ConfiguracionInterfaz.objects.create()
     
-    # Obtener logos activos
     logos = LogoCreador.objects.filter(activo=True)
     
-    # Determinar la escena inicial
     escena_inicial = None
     imagen_inicial = None
     
@@ -29,7 +24,6 @@ def visor_360(request):
             escena_inicial = escenas_primera_categoria.first()
             imagen_inicial = escena_inicial.imagen.url
         elif primera_categoria.imagen_fondo:
-            # Si la categoría tiene imagen de fondo pero no escenas, usar esa imagen
             imagen_inicial = primera_categoria.imagen_fondo.url
     
     context = {

@@ -1,9 +1,0 @@
-body {
-    background-image: url('images/mi_imagen_360.jpg'); /* Ruta a tu imagen */
-    background-size: cover; /* Cubre toda la pantalla */
-    background-position: center; /* Centra la imagen */
-    background-repeat: no-repeat; /* Evita que la imagen se repita */
-    background-attachment: fixed; /* Fija la imagen al hacer scroll */
-    height: 100vh; /* Asegura que el cuerpo tenga el alto de la ventana */
-    margin: 0;
-}
